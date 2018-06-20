@@ -32,7 +32,8 @@
 # Binary sed editing inspired from:
 #	http://everydaywithlinux.blogspot.com/2012/11/patch-strings-in-binary-files-with-sed.html
 # vbaProject.bin details inspired from:
-#	https://www.thegrideon.com/vba-internals.html and http://lbeliarl.blogspot.com/
+#	https://www.thegrideon.com/vba-internals.html
+#	http://lbeliarl.blogspot.com/
 # workbookProtection and sheetProtection details inspired from:
 #	http://datapigtechnologies.com/blog/index.php/hack-into-a-protected-excel-2007-or-2010-workbook/comment-page-3/
 #
