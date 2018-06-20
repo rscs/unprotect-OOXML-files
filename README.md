@@ -1,2 +1,13 @@
-# unprotectWorkbook
-Unprotect Excel workbooks, worksheets, and VBA code
+# Unprotect Workbook
+
+Use this bash script on a *nix machine to unprotect workbooks, worksheets, and VBA code in XLSX and XLSM files.
+
+*NOTE: This script will not work on files protected by an encrypted "Password to open" or "Password to modify" restriction. It will only remove workbook protection and worksheet protections from unencrypted files.*
+
+#### Requirements
+
+The following tools must be installed on your system and available in your path:
+* mktemp
+* zip and unzip
+* hexdump
+* xxd
