@@ -1,4 +1,4 @@
-# Unprotect Workbook
+# Unprotect Spreadsheets
 
 Use this bash script on a *nix machine to unprotect workbooks, worksheets, and VBA code in XLSX and XLSM files.
 
