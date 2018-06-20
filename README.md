@@ -9,5 +9,5 @@ Use this bash script on a *nix machine to unprotect workbooks, worksheets, and V
 The following tools must be installed on your system and available in your path:
 * mktemp
 * zip and unzip
-* hexdump
-* xxd
+* hexdump (only required if removing VBA password/restrictions)
+* xxd (only required if removing VBA password/restrictions)

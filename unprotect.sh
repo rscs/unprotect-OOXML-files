@@ -67,16 +67,6 @@ if ! [ -x "$(command -v zip)" ]; then
 	exit 1
 fi
 
-if ! [ -x "$(command -v hexdump)" ]; then
-	echo 'Error: hexdump is not installed.' >&2
-	exit 1
-fi
-
-if ! [ -x "$(command -v xxd)" ]; then
-	echo 'Error: xxd is not installed.' >&2
-	exit 1
-fi
-
 FILENAME=$(basename -- "$1")
 EXTENSION="${FILENAME##*.}"
 FILENAME="${FILENAME%.*}"
@@ -112,6 +102,16 @@ sed -i 's/state="hidden" //g' $WORK_DIR/xl/workbook.xml
 sed -i 's/state="veryHidden" //g' $WORK_DIR/xl/workbook.xml
 
 if [ -f $WORK_DIR/xl/vbaProject.bin ] ; then
+	if ! [ -x "$(command -v hexdump)" ]; then
+		echo 'Error: hexdump is not installed.' >&2
+		exit 1
+	fi
+
+	if ! [ -x "$(command -v xxd)" ]; then
+		echo 'Error: xxd is not installed.' >&2
+		exit 1
+	fi
+
 	echo 'Removing VBA password ...'
 	hexdump -ve '1/1 "%.2X"' $WORK_DIR/xl/vbaProject.bin | sed 's/49443D227B.*7D220D0A/49443D227B46363035383546332D323538332D343843452D414237342D4346433834434337354338447D220D0A/' | sed 's/434D473D22.*220D0A4450423D22.*220D0A47433D22.*220D0A0D0A/434D473D2230363034313644353136353744333542443335424433354244333542220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A4450423D2243374335443731343539313431423135314231353142220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A47433D2238383841393839423939394239393634220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A0D0A/g' | xxd -r -p > $WORK_DIR/xl/vbaProject.bin.tmp
 	chmod --reference $WORK_DIR/xl/vbaProject.bin $WORK_DIR/xl/vbaProject.bin.tmp
