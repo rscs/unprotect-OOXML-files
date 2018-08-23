@@ -32,8 +32,7 @@
 # Binary sed editing inspired from:
 #	http://everydaywithlinux.blogspot.com/2012/11/patch-strings-in-binary-files-with-sed.html
 # vbaProject.bin details inspired from:
-#	https://www.thegrideon.com/vba-internals.html
-#	http://lbeliarl.blogspot.com/
+#	https://www.thegrideon.com/vba-internals.html and http://lbeliarl.blogspot.com/
 # workbookProtection and sheetProtection details inspired from:
 #	http://datapigtechnologies.com/blog/index.php/hack-into-a-protected-excel-2007-or-2010-workbook/comment-page-3/
 #
@@ -43,12 +42,12 @@ if [ "$#" -ne 1 ]; then
 	exit 1
 fi
 
-if ! [ -f $1 ]; then
+if ! [ -f "$1" ]; then
 	echo "Errror: Input file $1 does not exist." >&2
 	exit 1
 fi
 
-if ! [ "`file -b $1`" = "Microsoft OOXML" ]; then
+if ! [[ "`file -b \"$1"`" = "Microsoft OOXML" || "`file -b \"$1\"`" = "Microsoft Excel 2007+" ]]; then
 	echo "Error: Input file $1 does not appear to be an XML file (.xlsx or .xlsm)." >&2
 	exit 1
 fi
@@ -93,7 +92,7 @@ function cleanup {
 trap cleanup EXIT
 
 echo "Extracting workbook files from ${DIR}/${FILENAME}${EXTENSION} ..."
-unzip -q $1 -d $WORK_DIR
+unzip -q "$1" -d $WORK_DIR
 
 echo 'Unprotecting workbook ...'
 sed -i 's/<workbookProtection[^>]*>//g' $WORK_DIR/xl/workbook.xml
