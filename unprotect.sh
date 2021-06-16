@@ -43,11 +43,11 @@ if [ "$#" -ne 1 ]; then
 fi
 
 if ! [ -f "$1" ]; then
-	echo "Errror: Input file $1 does not exist." >&2
+	echo "Error: Input file $1 does not exist." >&2
 	exit 1
 fi
 
-if ! [[ "`file -b \"$1"`" = "Microsoft OOXML" || "`file -b \"$1\"`" = "Microsoft Excel 2007+" ]]; then
+if ! [[ $(file -b "$1") = "Microsoft OOXML" || $(file -b "$1") = "Microsoft Excel 2007+" ]]; then
 	echo "Error: Input file $1 does not appear to be an XML file (.xlsx or .xlsm)." >&2
 	exit 1
 fi
@@ -71,7 +71,7 @@ FILENAME=$(basename -- "$1")
 EXTENSION="${FILENAME##*.}"
 FILENAME="${FILENAME%.*}"
 DIR="$( cd "$( dirname -- "$1" )" && pwd )"
-WORK_DIR=`mktemp -d`
+WORK_DIR=$(mktemp -d)
 
 echo 'Creating temporary directory ...'
 
@@ -92,34 +92,34 @@ function cleanup {
 trap cleanup EXIT
 
 echo "Extracting workbook files from ${DIR}/${FILENAME}${EXTENSION} ..."
-unzip -q "$1" -d $WORK_DIR
+unzip -q "$1" -d "$WORK_DIR"
 
 echo 'Unprotecting workbook ...'
-sed -i 's/<workbookProtection[^>]*>//g' $WORK_DIR/xl/workbook.xml
+sed -i 's/<workbookProtection[^>]*>//g' "$WORK_DIR/xl/workbook.xml"
 
 echo 'Making all worksheets visible ...'
-sed -i 's/state="hidden" //g' $WORK_DIR/xl/workbook.xml
-sed -i 's/state="veryHidden" //g' $WORK_DIR/xl/workbook.xml
+sed -i 's/state="hidden"//g' "$WORK_DIR/xl/workbook.xml"
+sed -i 's/state="veryHidden"//g' "$WORK_DIR/xl/workbook.xml"
 
-for f in $WORK_DIR/xl/worksheets/*.xml
+for f in "$WORK_DIR"/xl/worksheets/*.xml
 do
 	echo "Unprotecting worksheet $f ..."
-	sed -i 's/<sheetProtection[^>]*>//g' $f
+	sed -i 's/<sheetProtection[^>]*>//g' "$f"
 done
 
-if [ -f $WORK_DIR/xl/vbaProject.bin ] ; then
+if [ -f "$WORK_DIR/xl/vbaProject.bin" ] ; then
 	if ! [ -x "$(command -v hexdump)" ]; then
 		echo 'Warning: hexdump is not installed. Skipping VBA tasks.' >&2
 	elif ! [ -x "$(command -v xxd)" ]; then
 		echo 'Warning: xxd is not installed. Skipping VBA tasks.' >&2
 	else
 		echo 'Removing VBA password ...'
-		hexdump -ve '1/1 "%.2X"' $WORK_DIR/xl/vbaProject.bin | sed 's/49443D227B.*7D220D0A/49443D227B46363035383546332D323538332D343843452D414237342D4346433834434337354338447D220D0A/' | sed 's/434D473D22.*220D0A4450423D22.*220D0A47433D22.*220D0A0D0A/434D473D2230363034313644353136353744333542443335424433354244333542220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A4450423D2243374335443731343539313431423135314231353142220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A47433D2238383841393839423939394239393634220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A0D0A/g' | xxd -r -p > $WORK_DIR/xl/vbaProject.bin.tmp
-		chmod --reference $WORK_DIR/xl/vbaProject.bin $WORK_DIR/xl/vbaProject.bin.tmp
-		mv $WORK_DIR/xl/vbaProject.bin.tmp $WORK_DIR/xl/vbaProject.bin
+		hexdump -ve '1/1 "%.2X"' "$WORK_DIR/xl/vbaProject.bin" | sed 's/49443D227B.*7D220D0A/49443D227B46363035383546332D323538332D343843452D414237342D4346433834434337354338447D220D0A/' | sed 's/434D473D22.*220D0A4450423D22.*220D0A47433D22.*220D0A0D0A/434D473D2230363034313644353136353744333542443335424433354244333542220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A4450423D2243374335443731343539313431423135314231353142220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A47433D2238383841393839423939394239393634220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000D0A0D0A/g' | xxd -r -p > "$WORK_DIR/xl/vbaProject.bin.tmp"
+		chmod --reference "$WORK_DIR/xl/vbaProject.bin" "$WORK_DIR/xl/vbaProject.bin.tmp"
+		mv "$WORK_DIR/xl/vbaProject.bin.tmp" "$WORK_DIR/xl/vbaProject.bin"
 	fi
 fi
 
 echo "Zipping workbook files to ${DIR}/${FILENAME}-Unprotected.${EXTENSION} ..."
-cd $WORK_DIR
+cd "$WORK_DIR" || exit
 zip -q -r "${DIR}/${FILENAME}-Unprotected.${EXTENSION}" ./
